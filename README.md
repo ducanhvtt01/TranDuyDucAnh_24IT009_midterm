@@ -1,8 +1,8 @@
 # UNIX ls(1) Implementation in C
 
-**Student Name:** Tran Duy Duc Anh  
-**Student ID:** 24IT009  
-**Course:** System Programming (Lập Trình Hệ Thống)  
+**Student Name:** Tran Duy Duc Anh 
+**Student ID:** 24IT009 
+**Course:** System Programming (Lập Trình Hệ Thống)
 **Project:** Midterm Project – Implement ls(1)
 
 ## Description
@@ -61,6 +61,5 @@ The program successfully implements the following options as specified in the ma
 
 ## GitHub Repository
 
-**Repository Link:** [Insert your GitHub URL here]
+**Repository Link:** [https://github.com/ducanhvtt01/TranDuyDucAnh_24IT009_midterm]
 
-*(Note: Don't forget to insert your actual GitHub URL before submitting this report to the e-learning system!)*
