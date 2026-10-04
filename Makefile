@@ -6,7 +6,7 @@ OBJS = main.o ls_core.o utils.o
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
 %.o: %.c ls.h
 	$(CC) $(CFLAGS) -c $< -o $@
