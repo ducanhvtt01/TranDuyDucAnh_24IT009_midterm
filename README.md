@@ -132,6 +132,7 @@ void list_directory(const char *dir_path, const LsOptions *options) {
    ./lsducanh -R -h
    ./lsducanh -l -S -r /path/to/directory
    ```
+   ![Sau khi chạy lệnh thành công](images/success.png)
 4. Clean up the compiled binaries:
    ```bash
    make clean
