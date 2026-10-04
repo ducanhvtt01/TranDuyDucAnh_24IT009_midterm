@@ -1,9 +1,10 @@
 # UNIX ls(1) Implementation in C
 
-**Student Name:** Tran Duy Duc Anh 
-**Student ID:** 24IT009 
-**Course:** System Programming (Lập Trình Hệ Thống)
-**Project:** Midterm Project – Implement ls(1)
+**Student Name:** Tran Duy Duc Anh  
+**Student ID:** 24IT009  
+**Course:** System Programming (Lập Trình Hệ Thống) (5)
+**Supervisor** Dr. Nguyen Nhat An  
+**Project:** Midterm Project – Implement ls(1)  
 
 ## Description
 
@@ -44,12 +45,69 @@ The program successfully implements the following options as specified in the ma
 ## Code Implementation Details (Function Explanations)
 
 ### 1. `main.c`
-- **`parse_options(int argc, char *argv[], LsOptions *options)`**: Uses the POSIX `getopt` function to parse command-line arguments. It sets the corresponding boolean flags in the `LsOptions` structure based on the flags provided by the user.
+
+```c
+void parse_options(int argc, char *argv[], LsOptions *options) {
+    int opt;
+    if (isatty(STDOUT_FILENO)) options->opt_q = true; 
+    else options->opt_w = true;
+
+    while ((opt = getopt(argc, argv, "AacdFfhiklnqRrSstuw")) != -1) {
+        switch (opt) {
+            case 'a': options->opt_a = true; break;
+            case 'l': options->opt_l = true; options->opt_n = false; break;
+            case 'R': options->opt_R = true; options->opt_d = false; break;
+            /* ... (other flags omitted for brevity) ... */
+        }
+    }
+}
+```
+**`parse_options(...)`**: Uses the POSIX `getopt` function to parse command-line arguments. It sets the corresponding boolean flags in the `LsOptions` structure based on the flags provided by the user.
+
 - **`main(int argc, char *argv[])`**: The main entry point. It calls `parse_options()`, separates directory operands from file operands, sorts them, and then sequentially calls `print_file_info()` (for plain files) and `list_directory()` (for directories).
 
 ### 2. `ls_core.c`
-- **`process_path(const char *path, const LsOptions *options)`**: Takes a path and uses `lstat()` to check if it's a directory or a file. If it's a directory (and `-d` is not set), it delegates to `list_directory()`. Otherwise, it prints the file information directly.
-- **`list_directory(const char *dir_path, const LsOptions *options)`**: Uses `opendir()` and `readdir()` to iterate through all files inside a directory. It stores the file structures dynamically, calculates total allocated blocks, sorts the entries, prints them, and handles recursive directory traversal if the `-R` flag is enabled.
+
+```c
+void process_path(const char *path, const LsOptions *options) {
+    struct stat st;
+    if (lstat(path, &st) == -1) {
+        perror(path); return;
+    }
+    
+    if (S_ISDIR(st.st_mode) && !options->opt_d) {
+        list_directory(path, options);
+    } else {
+        FileInfo *fi = malloc(sizeof(FileInfo));
+        /* ... (Store data and print file info) ... */
+        print_file_info(fi, options);
+    }
+}
+```
+**`process_path(...)`**: Takes a path and uses `lstat()` to check if it's a directory or a file. If it's a directory (and `-d` is not set), it delegates to `list_directory()`. Otherwise, it prints the file information directly.
+
+```c
+void list_directory(const char *dir_path, const LsOptions *options) {
+    DIR *dir = opendir(dir_path);
+    struct dirent *entry;
+    
+    while ((entry = readdir(dir)) != NULL) {
+        /* Filter hidden files based on -a and -A options */
+        if (entry->d_name[0] == '.') {
+            if (!options->opt_a && !options->opt_A) continue;
+        }
+        /* Read file metadata and add to array */
+    }
+    closedir(dir);
+    
+    sort_files(files, count, options);
+    for (int i = 0; i < count; i++) print_file_info(files[i], options);
+    
+    /* Recursively list subdirectories if -R is set */
+    if (options->opt_R) { /* ... */ }
+}
+```
+**`list_directory(...)`**: Uses `opendir()` and `readdir()` to iterate through all files inside a directory. It stores the file structures dynamically, calculates total allocated blocks, sorts the entries, prints them, and handles recursive directory traversal if the `-R` flag is enabled.
 
 ### 3. `utils.c`
 - **`make_full_path(...)`**: Utility to concatenate a directory path and a file name into a full path string.
@@ -70,9 +128,9 @@ The program successfully implements the following options as specified in the ma
    ```
 3. Run the program with any combination of supported flags. For example:
    ```bash
-   ./ls_program -l -a
-   ./ls_program -R -h
-   ./ls_program -l -S -r /path/to/directory
+   ./lsducanh -l -a
+   ./lsducanh -R -h
+   ./lsducanh -l -S -r /path/to/directory
    ```
 4. Clean up the compiled binaries:
    ```bash
