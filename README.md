@@ -2,7 +2,7 @@
 
 **Student Name:** Tran Duy Duc Anh  
 **Student ID:** 24IT009  
-**Course:** System Programming (Lập Trình Hệ Thống) (5)
+**Course:** System Programming (Lập Trình Hệ Thống) (5)  
 **Supervisor** Dr. Nguyen Nhat An  
 **Project:** Midterm Project – Implement ls(1)  
 

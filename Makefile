@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=gnu99
-TARGET = lsducanh
+TARGET = ls_ducanh
 OBJS = main.o ls_core.o utils.o
 
 all: $(TARGET)

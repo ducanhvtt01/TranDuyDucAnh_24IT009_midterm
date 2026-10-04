@@ -42,7 +42,7 @@ void list_directory(const char *dir_path, const LsOptions *options);
 
 /* utils.c */
 void print_file_info(const FileInfo *file, const LsOptions *options);
-int compare_files(const void *a, const void *b, void *arg);
+int compare_files(const void *a, const void *b);
 void sort_files(FileInfo **files, int count, const LsOptions *options);
 void format_mode(mode_t mode, char *str);
 void print_human_readable_size(off_t size);
