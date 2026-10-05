@@ -132,7 +132,8 @@ void list_directory(const char *dir_path, const LsOptions *options) {
    ./ls -R -h
    ./ls -l -S -r /path/to/directory
    ```
-   **After running the command successfully**
+   **After running the command successfully:**  
+
    ![After running the command successfully](images/test1.png)
    
 4. Clean up the compiled binaries:
