@@ -134,9 +134,6 @@ void list_directory(const char *dir_path, const LsOptions *options) {
    ```
    **After running the command successfully**
    ![After running the command successfully](images/test1.png)
-   ![After running the command successfully](images/test2.png)
-   ![After running the command successfully](images/test3.png)
-   ![After running the command successfully](images/test4.png)
    
 4. Clean up the compiled binaries:
    ```bash
