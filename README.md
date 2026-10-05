@@ -132,7 +132,10 @@ void list_directory(const char *dir_path, const LsOptions *options) {
    ./ls -R -h
    ./ls -l -S -r /path/to/directory
    ```
-   ![Sau khi chạy lệnh thành công](images/success.png)
+   **After running the command successfully**
+   ![After running the command successfully](images/test1.png)
+   ![After running the command successfully](images/test2.png)
+   ![After running the command successfully](images/test3.png)
 4. Clean up the compiled binaries:
    ```bash
    make clean
