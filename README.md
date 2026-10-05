@@ -128,9 +128,9 @@ void list_directory(const char *dir_path, const LsOptions *options) {
    ```
 3. Run the program with any combination of supported flags. For example:
    ```bash
-   ./lsducanh -l -a
-   ./lsducanh -R -h
-   ./lsducanh -l -S -r /path/to/directory
+   ./ls -l -a
+   ./ls -R -h
+   ./ls -l -S -r /path/to/directory
    ```
    ![Sau khi chạy lệnh thành công](images/success.png)
 4. Clean up the compiled binaries:
