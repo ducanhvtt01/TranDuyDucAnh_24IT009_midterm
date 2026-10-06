@@ -203,8 +203,8 @@ void print_file_info(const FileInfo *file, const LsOptions *options) {
             if (pw) printf("%s  ", pw->pw_name);
             else printf("%-8u  ", (unsigned)file->st.st_uid);
             
-            if (gr) printf("%s  ", gr->gr_name);
-            else printf("%-8u  ", (unsigned)file->st.st_gid);
+            if (gr) printf("%s ", gr->gr_name);
+            else printf("%-8u ", (unsigned)file->st.st_gid);
         }
         
         if (S_ISCHR(file->st.st_mode) || S_ISBLK(file->st.st_mode)) {

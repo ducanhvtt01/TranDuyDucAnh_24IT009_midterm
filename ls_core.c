@@ -42,8 +42,9 @@ void list_directory(const char *dir_path, const LsOptions *options) {
     int capacity = 10;
     files = malloc(capacity * sizeof(FileInfo*));
     
-    /* Calculate total blocks for directory */
+    /* Calculate total blocks and bytes for directory */
     blkcnt_t total_blocks = 0;
+    off_t total_bytes = 0;
     
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_name[0] == '.') {
@@ -77,6 +78,7 @@ void list_directory(const char *dir_path, const LsOptions *options) {
         
         /* 512-byte blocks. st_blocks is usually in 512-byte units on most POSIX */
         total_blocks += fi->st.st_blocks; 
+        total_bytes += fi->st.st_size;
         
         files[count++] = fi;
     }
@@ -88,7 +90,7 @@ void list_directory(const char *dir_path, const LsOptions *options) {
         /* Print total blocks if listing directory contents with -l or -s */
         if (options->opt_h) {
             char total_buf[32];
-            format_human_size((off_t)total_blocks * 512, total_buf, sizeof(total_buf));
+            format_human_size(total_bytes, total_buf, sizeof(total_buf));
             printf("total %s\n", total_buf);
         } else if (options->opt_k) {
             long long display_blocks = (total_blocks * 512 + 1023) / 1024;
