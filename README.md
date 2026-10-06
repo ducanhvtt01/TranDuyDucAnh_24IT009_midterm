@@ -13,6 +13,7 @@ This project is a simplified version of the standard UNIX `ls(1)` command, writt
 ## Implemented Features
 
 The program successfully implements the following options as specified in the manual page snippet:
+- **-1**: List one entry per line (by default when output to pipe or explicitly passed)
 - **-A**: List all entries except for `.` and `..`
 - **-a**: Include directory entries whose names begin with a dot (`.`)
 - **-c**: Use time when file status was last changed for sorting or printing
@@ -22,7 +23,8 @@ The program successfully implements the following options as specified in the ma
 - **-h**: Human readable sizes
 - **-i**: Print the file serial number (inode number)
 - **-k**: Sizes in kilobytes
-- **-l**: List in long format
+- **-l**: List in long format (overrides -1)
+- **Multi-column display**: Automatically adjusts to terminal width when standard output is a terminal (just like standard UNIX `ls`).
 - **-n**: Numeric UID/GID for long format
 - **-q**: Force printing of non-printable characters as `?`
 - **-R**: Recursively list subdirectories
@@ -72,15 +74,16 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
 void process_path(const char *path, const LsOptions *options) {
     struct stat st;
     if (lstat(path, &st) == -1) {
-        perror(path); return;
+        perror(path); exit_status = 1; return;
     }
     
     if (S_ISDIR(st.st_mode) && !options->opt_d) {
         list_directory(path, options);
     } else {
         FileInfo *fi = malloc(sizeof(FileInfo));
-        /* ... (Store data and print file info) ... */
-        print_file_info(fi, options);
+        /* ... (Store data and print file) ... */
+        FileInfo *single_file[1] = { fi };
+        print_files(single_file, 1, options);
     }
 }
 ```
@@ -101,23 +104,25 @@ void list_directory(const char *dir_path, const LsOptions *options) {
     closedir(dir);
     
     sort_files(files, count, options);
-    for (int i = 0; i < count; i++) print_file_info(files[i], options);
+    print_files(files, count, options);
     
     /* Recursively list subdirectories if -R is set */
     if (options->opt_R) { /* ... */ }
 }
 ```
-**`list_directory(...)`**: Uses `opendir()` and `readdir()` to iterate through all files inside a directory. It stores the file structures dynamically, calculates total allocated blocks, sorts the entries, prints them, and handles recursive directory traversal if the `-R` flag is enabled.
+**`list_directory(...)`**: Uses `opendir()` and `readdir()` to iterate through all files inside a directory. It stores the file structures dynamically, calculates total allocated blocks (formatted as human-readable, kilobytes, or standard blocksize), sorts the entries, prints them via `print_files()`, and handles recursive directory traversal if the `-R` flag is enabled.
 
 ### 3. `utils.c`
 - **`make_full_path(...)`**: Utility to concatenate a directory path and a file name into a full path string.
 - **`compare_files(const void *a, const void *b)`**: The comparator function passed to `qsort()`. It contains the logic for sorting files lexicographically (default), by size (`-S`), or by time (`-t`, `-c`, `-u`). It also handles reverse sorting if `-r` is set.
 - **`sort_files(...)`**: Wrapper around `qsort()` to sort an array of `FileInfo` structures based on user options.
-- **`get_file_type_char(...)`**: Analyzes the file mode and returns the type indicator character (e.g., `d` for directory, `-` for regular file, `l` for symlink).
-- **`format_mode(...)`**: Translates the `st_mode` integer into the familiar 10-character permission string (e.g., `drwxr-xr-x`).
-- **`print_human_readable_size(...)`**: Converts exact byte counts into human-readable formats (K, M, G, T) when the `-h` flag is provided.
+- **`get_file_type_char(...)`**: Analyzes the file mode and returns the type indicator character (e.g., `d` for directory, `-` for regular file, `l` for symlink, `w` for whiteout).
+- **`format_mode(...)`**: Translates the `st_mode` integer into the familiar 10-character permission string (e.g., `drwxr-xr-x`, `rws`, `rwt`).
+- **`format_human_size(...)` / `print_human_readable_size(...)`**: Converts exact byte counts into human-readable formats (B, K, M, G, T) with standard rounding and unit suffix when the `-h` flag is provided.
+- **`get_blocksize(...)`**: Reads the `BLOCKSIZE` environment variable or defaults to 512 bytes for block calculation.
 - **`print_file_name(...)`**: Safely prints the file name. It handles appending type indicators for the `-F` flag and escaping non-printable characters for the `-q` flag.
-- **`print_file_info(...)`**: The main formatting and output function. It checks the active flags (`-l`, `-i`, `-s`) and prints the required metadata for a single file, such as inode, blocks, permissions, owner, group, size, and modification time.
+- **`print_files(...)` / `print_files_columnar(...)`**: The core output coordination function. It dynamically detects terminal width via `ioctl()` to print clean, multi-column listings when connected to a terminal, or line-by-line format when redirected or when `-1` or `-l` is active.
+- **`print_file_info(...)`**: Prints long listing entries (`-l`), including device major/minor numbers, links, permissions, owner, group, sizes, timestamps (`%b %e %H:%M`), and symlink targets.
 
 ## How to Compile and Run
 

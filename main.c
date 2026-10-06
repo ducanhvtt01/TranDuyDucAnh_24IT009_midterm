@@ -6,6 +6,7 @@
 #include "ls.h"
 
 LsOptions current_sort_options;
+int exit_status = 0;
 
 void parse_options(int argc, char *argv[], LsOptions *options) {
     int opt;
@@ -16,8 +17,18 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
         options->opt_w = true;
     }
 
-    while ((opt = getopt(argc, argv, "AacdFfhiklnqRrSstuw")) != -1) {
+    /* -A: Always set for the super-user */
+    if (geteuid() == 0) {
+        options->opt_A = true;
+    }
+
+    while ((opt = getopt(argc, argv, "1AacdFfhiklnqRrSstuw")) != -1) {
         switch (opt) {
+            case '1':
+                options->opt_1 = true;
+                options->opt_l = false;
+                options->opt_n = false;
+                break;
             case 'A': options->opt_A = true; break;
             case 'a': options->opt_a = true; break;
             case 'c': options->opt_c = true; options->opt_u = false; break;
@@ -27,8 +38,8 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
             case 'h': options->opt_h = true; options->opt_k = false; break;
             case 'i': options->opt_i = true; break;
             case 'k': options->opt_k = true; options->opt_h = false; break;
-            case 'l': options->opt_l = true; options->opt_n = false; break;
-            case 'n': options->opt_n = true; options->opt_l = true; break;
+            case 'l': options->opt_l = true; options->opt_n = false; options->opt_1 = false; break;
+            case 'n': options->opt_n = true; options->opt_l = true; options->opt_1 = false; break;
             case 'q': options->opt_q = true; options->opt_w = false; break;
             case 'R': options->opt_R = true; options->opt_d = false; break;
             case 'r': options->opt_r = true; break;
@@ -38,7 +49,7 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
             case 'u': options->opt_u = true; options->opt_c = false; break;
             case 'w': options->opt_w = true; options->opt_q = false; break;
             default:
-                fprintf(stderr, "Usage: %s [-AacdFfhiklnqRrSstuw] [file ...]\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-1AacdFfhiklnqRrSstuw] [file ...]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -63,6 +74,7 @@ int main(int argc, char *argv[]) {
             struct stat st;
             if (lstat(argv[i], &st) == -1) {
                 perror(argv[i]);
+                exit_status = 1;
                 continue;
             }
             FileInfo *fi = malloc(sizeof(FileInfo));
@@ -81,11 +93,13 @@ int main(int argc, char *argv[]) {
         sort_files(dirs, dir_count, &options);
         
         /* Display non-directories first */
-        for (int i = 0; i < file_count; i++) {
-            print_file_info(files[i], &options);
-            free(files[i]->name);
-            free(files[i]->path);
-            free(files[i]);
+        if (file_count > 0) {
+            print_files(files, file_count, &options);
+            for (int i = 0; i < file_count; i++) {
+                free(files[i]->name);
+                free(files[i]->path);
+                free(files[i]);
+            }
         }
         
         if (file_count > 0 && dir_count > 0) {
@@ -111,5 +125,5 @@ int main(int argc, char *argv[]) {
         free(dirs);
     }
     
-    return EXIT_SUCCESS;
+    return exit_status;
 }

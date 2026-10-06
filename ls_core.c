@@ -9,6 +9,7 @@ void process_path(const char *path, const LsOptions *options) {
     struct stat st;
     if (lstat(path, &st) == -1) {
         perror(path);
+        exit_status = 1;
         return;
     }
     
@@ -19,7 +20,8 @@ void process_path(const char *path, const LsOptions *options) {
         fi->name = strdup(path);
         fi->path = strdup(path);
         fi->st = st;
-        print_file_info(fi, options);
+        FileInfo *single_file[1] = { fi };
+        print_files(single_file, 1, options);
         free(fi->name);
         free(fi->path);
         free(fi);
@@ -30,6 +32,7 @@ void list_directory(const char *dir_path, const LsOptions *options) {
     DIR *dir = opendir(dir_path);
     if (!dir) {
         perror(dir_path);
+        exit_status = 1;
         return;
     }
     
@@ -65,6 +68,7 @@ void list_directory(const char *dir_path, const LsOptions *options) {
         
         if (lstat(fi->path, &fi->st) == -1) {
             perror(fi->path);
+            exit_status = 1;
             free(fi->name);
             free(fi->path);
             free(fi);
@@ -82,21 +86,21 @@ void list_directory(const char *dir_path, const LsOptions *options) {
     
     if (options->opt_l || options->opt_s) {
         /* Print total blocks if listing directory contents with -l or -s */
-        long long display_blocks = total_blocks;
-        if (options->opt_k) {
-            display_blocks = (display_blocks * 512 + 1023) / 1024;
-        } else if (options->opt_h) {
-            /* -h overrides -k on block total? NetBSD says:
-               "The total number of blocks in units of 512 bytes or BLOCKSIZE..."
-               Let's keep it simple. */
+        if (options->opt_h) {
+            char total_buf[32];
+            format_human_size((off_t)total_blocks * 512, total_buf, sizeof(total_buf));
+            printf("total %s\n", total_buf);
+        } else if (options->opt_k) {
+            long long display_blocks = (total_blocks * 512 + 1023) / 1024;
+            printf("total %lld\n", display_blocks);
+        } else {
+            long bs = get_blocksize();
+            long long display_blocks = (total_blocks * 512 + bs - 1) / bs;
+            printf("total %lld\n", display_blocks);
         }
-        /* In this simplified version, print basic total if -l or -s */
-        printf("total %lld\n", display_blocks);
     }
     
-    for (int i = 0; i < count; i++) {
-        print_file_info(files[i], options);
-    }
+    print_files(files, count, options);
     
     /* Handle recursion */
     if (options->opt_R) {
