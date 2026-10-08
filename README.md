@@ -153,7 +153,7 @@ Run the program with any combination of supported flags. For example:
 ./ls -l -S -r /path/to/directory
 ```
 
-**After running the command successfully:**  
+**After running the command successfully:**
 
 ![After running the command successfully](images/test1.png)
    
