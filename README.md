@@ -155,7 +155,7 @@ Run the program with any combination of supported flags. For example:
 
 **After running the command successfully:**
 
-![After running the command successfully](images/test1.png)
+![After running the command successfully](images/test.png)
    
 **Step 5: Clean up the compiled binaries (Optional)**
 ```bash
