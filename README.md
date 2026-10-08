@@ -124,27 +124,43 @@ void list_directory(const char *dir_path, const LsOptions *options) {
 - **`print_files(...)` / `print_files_columnar(...)`**: The core output coordination function. It dynamically detects terminal width via `ioctl()` to print clean, multi-column listings when connected to a terminal, or line-by-line format when redirected or when `-1` or `-l` is active.
 - **`print_file_info(...)`**: Prints long listing entries (`-l`), including device major/minor numbers, links, permissions, owner, group, sizes, timestamps (`%b %e %H:%M`), and symlink targets.
 
-## How to Compile and Run
+## How to Compile and Run (on NetBSD VM)
 
-1. Open a terminal in the project directory.
-2. Compile the project using the provided Makefile:
-   ```bash
-   make
-   ```
-3. Run the program with any combination of supported flags. For example:
-   ```bash
-   ./ls -l -a
-   ./ls -R -h
-   ./ls -l -S -r /path/to/directory
-   ```
-   **After running the command successfully:**  
+**Step 1: Download the source code from GitHub**
+Open the NetBSD terminal and run the following command to download the source code zip file:
+```bash
+ftp -o code.zip https://github.com/ducanhvtt01/TranDuyDucAnh_24IT009_midterm/archive/refs/heads/main.zip
+```
 
-   ![After running the command successfully](images/test1.png)
+**Step 2: Unzip and navigate to the project directory**
+Unzip the downloaded file (overwriting any existing files if necessary) and change into the directory:
+```bash
+unzip -o code.zip
+cd TranDuyDucAnh_24IT009_midterm-main
+```
+
+**Step 3: Compile the project**
+Compile the project using the provided Makefile:
+```bash
+make
+```
+
+**Step 4: Run the program**
+Run the program with any combination of supported flags. For example:
+```bash
+./ls -l -a
+./ls -R -h
+./ls -l -S -r /path/to/directory
+```
+
+**After running the command successfully:**  
+
+![After running the command successfully](images/test1.png)
    
-4. Clean up the compiled binaries:
-   ```bash
-   make clean
-   ```
+**Step 5: Clean up the compiled binaries (Optional)**
+```bash
+make clean
+```
 
 ## GitHub Repository
 
