@@ -13,7 +13,6 @@ This project is a simplified version of the standard UNIX `ls(1)` command, writt
 ## Implemented Features
 
 The program successfully implements the following options as specified in the manual page snippet:
-- **-1**: List one entry per line (by default when output to pipe or explicitly passed)
 - **-A**: List all entries except for `.` and `..`
 - **-a**: Include directory entries whose names begin with a dot (`.`)
 - **-c**: Use time when file status was last changed for sorting or printing
@@ -35,6 +34,12 @@ The program successfully implements the following options as specified in the ma
 - **-u**: Use time of last access for sorting or printing
 - **-w**: Force raw printing of non-printable characters
 
+## 🌟 Bonus Features (Custom Extensions)
+To demonstrate deeper system programming knowledge, I have implemented 3 completely new flags that do not exist in standard UNIX `ls`:
+- **`-1`**: List one entry per line (by default when output to pipe or explicitly passed)  
+- **`-V` (Visual Tree):** Displays the directory structure recursively in a beautiful ASCII tree format (similar to the `tree` command, but integrated natively).
+- **`-Y` (SummarY):** Calculates and prints a summary block at the bottom of the output, showing total files, directories, hidden files, and cumulative size.
+- **`-P` (Paint/Palette):** Applies ANSI color codes to the output, dynamically highlighting directories (Blue), executables (Green), compressed archives (Red), and hidden files (Gray).
 ## Project Structure
 
 - `main.c`: The entry point. Handles parsing command-line arguments using `getopt()` and coordinates the program logic.
@@ -151,6 +156,18 @@ Run the program with any combination of supported flags. For example:
 ./ls -l -a
 ./ls -R -h
 ./ls -l -S -r /path/to/directory
+```
+
+**Testing the Bonus Features:**
+```bash
+# Test Visual Tree and Coloring together
+./ls -V -P
+
+# Test Summary Statistics and Coloring together
+./ls -l -Y -P
+
+# Test all 3 bonus features at the same time
+./ls -V -Y -P
 ```
 
 **After running the command successfully:**
