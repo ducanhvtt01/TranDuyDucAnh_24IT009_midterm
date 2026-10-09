@@ -59,11 +59,11 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
     if (isatty(STDOUT_FILENO)) options->opt_q = true; 
     else options->opt_w = true;
 
-    while ((opt = getopt(argc, argv, "AacdFfhiklnqRrSstuw")) != -1) {
+    while ((opt = getopt(argc, argv, "1AacdFfhiklnqRrSstuwVYP")) != -1) {
         switch (opt) {
             case 'a': options->opt_a = true; break;
             case 'l': options->opt_l = true; options->opt_n = false; break;
-            case 'R': options->opt_R = true; options->opt_d = false; break;
+            case 'V': options->opt_V = true; break;
             /* ... (other flags omitted for brevity) ... */
         }
     }
@@ -71,7 +71,7 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
 ```
 **`parse_options(...)`**: Uses the POSIX `getopt` function to parse command-line arguments. It sets the corresponding boolean flags in the `LsOptions` structure based on the flags provided by the user.
 
-- **`main(int argc, char *argv[])`**: The main entry point. It calls `parse_options()`, separates directory operands from file operands, sorts them, and then sequentially calls `print_file_info()` (for plain files) and `list_directory()` (for directories).
+- **`main(int argc, char *argv[])`**: The main entry point. It calls `parse_options()`, separates directory operands from file operands, sorts them, and then sequentially calls `print_tree_directory()` (if `-V` is active) or `list_directory()`. Finally, it prints the global summary statistics if the `-Y` flag is set.
 
 ### 2. `ls_core.c`
 
@@ -115,10 +115,23 @@ void list_directory(const char *dir_path, const LsOptions *options) {
     if (options->opt_R) { /* ... */ }
 }
 ```
-**`list_directory(...)`**: Uses `opendir()` and `readdir()` to iterate through all files inside a directory. It stores the file structures dynamically, calculates total allocated blocks (formatted as human-readable, kilobytes, or standard blocksize), sorts the entries, prints them via `print_files()`, and handles recursive directory traversal if the `-R` flag is enabled.
+**`list_directory(...)`**: Uses `opendir()` and `readdir()` to iterate through all files inside a directory. It stores the file structures dynamically, calculates total allocated blocks, updates the global summary statistics (if `-Y`), sorts the entries, prints them via `print_files()`, and handles recursive directory traversal if the `-R` flag is enabled.
+
+```c
+void print_tree_directory(const char *dir_path, const char *prefix, const LsOptions *options) {
+    /* ... (Directory traversal logic) ... */
+    for (int i = 0; i < count; i++) {
+        bool is_last = (i == count - 1);
+        printf("%s%s", prefix, is_last ? "└── " : "├── ");
+        /* Print colored name and recursive call */
+    }
+}
+```
+**`print_tree_directory(...)`**: A specialized recursive function to draw the directory structure in a visual ASCII tree hierarchy (`-V`). It dynamically computes the prefix format (`├──` and `└──`) for branches and passes them down into child directories.
 
 ### 3. `utils.c`
 - **`make_full_path(...)`**: Utility to concatenate a directory path and a file name into a full path string.
+- **`is_archive_file(...)`**: A helper function that detects `.zip`, `.tar`, `.gz`, `.rar`, and `.7z` file extensions to apply the Red color when the `-P` flag is active.
 - **`compare_files(const void *a, const void *b)`**: The comparator function passed to `qsort()`. It contains the logic for sorting files lexicographically (default), by size (`-S`), or by time (`-t`, `-c`, `-u`). It also handles reverse sorting if `-r` is set.
 - **`sort_files(...)`**: Wrapper around `qsort()` to sort an array of `FileInfo` structures based on user options.
 - **`get_file_type_char(...)`**: Analyzes the file mode and returns the type indicator character (e.g., `d` for directory, `-` for regular file, `l` for symlink, `w` for whiteout).
