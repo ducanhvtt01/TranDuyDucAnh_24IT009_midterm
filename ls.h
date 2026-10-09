@@ -28,7 +28,19 @@ typedef struct {
     bool opt_t;
     bool opt_u;
     bool opt_w;
+    bool opt_V;
+    bool opt_Y;
+    bool opt_P;
 } LsOptions;
+
+typedef struct {
+    int total_files;
+    int total_dirs;
+    int total_hidden;
+    long long total_size;
+} LsStats;
+
+extern LsStats global_stats;
 
 /* Structure to store file information */
 typedef struct {
@@ -40,6 +52,7 @@ typedef struct {
 /* ls_core.c */
 void process_path(const char *path, const LsOptions *options);
 void list_directory(const char *dir_path, const LsOptions *options);
+void print_tree_directory(const char *dir_path, const char *prefix, const LsOptions *options);
 
 /* utils.c */
 void print_file_info(const FileInfo *file, const LsOptions *options);
@@ -52,6 +65,7 @@ void format_human_size(off_t size, char *buf, size_t buflen);
 long get_blocksize(void);
 char get_file_type_char(mode_t mode);
 char* make_full_path(const char *dir, const char *file);
+bool is_archive_file(const char *name);
 
 /* Global options instance for passing to sort comparator */
 extern LsOptions current_sort_options;

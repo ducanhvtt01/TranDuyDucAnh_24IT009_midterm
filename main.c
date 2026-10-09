@@ -7,6 +7,7 @@
 
 LsOptions current_sort_options;
 int exit_status = 0;
+LsStats global_stats = {0, 0, 0, 0};
 
 void parse_options(int argc, char *argv[], LsOptions *options) {
     int opt;
@@ -22,7 +23,7 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
         options->opt_A = true;
     }
 
-    while ((opt = getopt(argc, argv, "1AacdFfhiklnqRrSstuw")) != -1) {
+    while ((opt = getopt(argc, argv, "1AacdFfhiklnqRrSstuwVYP")) != -1) {
         switch (opt) {
             case '1':
                 options->opt_1 = true;
@@ -48,8 +49,11 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
             case 't': options->opt_t = true; break;
             case 'u': options->opt_u = true; options->opt_c = false; break;
             case 'w': options->opt_w = true; options->opt_q = false; break;
+            case 'V': options->opt_V = true; break;
+            case 'Y': options->opt_Y = true; break;
+            case 'P': options->opt_P = true; break;
             default:
-                fprintf(stderr, "Usage: %s [-1AacdFfhiklnqRrSstuw] [file ...]\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-1AacdFfhiklnqRrSstuwVYP] [file ...]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -111,7 +115,11 @@ int main(int argc, char *argv[]) {
             if (num_operands > 1) {
                 printf("%s:\n", dirs[i]->path);
             }
-            list_directory(dirs[i]->path, &options);
+            if (options.opt_V) {
+                print_tree_directory(dirs[i]->path, "", &options);
+            } else {
+                list_directory(dirs[i]->path, &options);
+            }
             
             if (i < dir_count - 1) {
                 printf("\n");
@@ -123,6 +131,19 @@ int main(int argc, char *argv[]) {
         
         free(files);
         free(dirs);
+    }
+    
+    if (options.opt_Y) {
+        printf("\n========================================\n");
+        printf("🌟 THONG KE TONG QUAN (SUMMARY) 🌟\n");
+        printf("📁 Thu muc: %d\n", global_stats.total_dirs);
+        printf("📄 File thuong: %d\n", global_stats.total_files);
+        printf("👻 File an: %d\n", global_stats.total_hidden);
+        
+        char size_buf[32];
+        format_human_size((off_t)global_stats.total_size, size_buf, sizeof(size_buf));
+        printf("💾 Tong dung luong: %s\n", size_buf);
+        printf("========================================\n");
     }
     
     return exit_status;

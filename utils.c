@@ -23,6 +23,17 @@ char* make_full_path(const char *dir, const char *file) {
     return path;
 }
 
+bool is_archive_file(const char *name) {
+    const char *ext = strrchr(name, '.');
+    if (!ext) return false;
+    if (strcmp(ext, ".zip") == 0 || strcmp(ext, ".tar") == 0 ||
+        strcmp(ext, ".gz") == 0 || strcmp(ext, ".rar") == 0 ||
+        strcmp(ext, ".7z") == 0) {
+        return true;
+    }
+    return false;
+}
+
 int compare_files(const void *a, const void *b) {
     if (current_sort_options.opt_f) return 0; /* No sort */
     
@@ -172,6 +183,17 @@ void print_file_name(const FileInfo *file, const LsOptions *options) {
 }
 
 void print_file_info(const FileInfo *file, const LsOptions *options) {
+    if (options->opt_P) {
+        mode_t m = file->st.st_mode;
+        if (S_ISDIR(m)) printf("\x1b[1;34m");
+        else if (m & (S_IXUSR | S_IXGRP | S_IXOTH)) printf("\x1b[1;32m");
+#ifdef S_ISLNK
+        else if (S_ISLNK(m)) printf("\x1b[1;36m");
+#endif
+        else if (is_archive_file(file->name)) printf("\x1b[1;31m");
+        else if (file->name[0] == '.') printf("\x1b[1;30m");
+    }
+
     if (options->opt_i) {
         printf("%llu ", (unsigned long long)file->st.st_ino);
     }
@@ -242,6 +264,7 @@ void print_file_info(const FileInfo *file, const LsOptions *options) {
     }
 #endif
     
+    if (options->opt_P) printf("\x1b[0m");
     printf("\n");
 }
 
@@ -421,11 +444,26 @@ void print_files(FileInfo **files, int count, const LsOptions *options) {
         return;
     }
 
-    if (options->opt_1 || !isatty(STDOUT_FILENO)) {
+    if (options->opt_1 || options->opt_P || !isatty(STDOUT_FILENO)) {
         for (int i = 0; i < count; i++) {
             char buf[2048];
             format_entry_short(files[i], options, buf, sizeof(buf));
-            printf("%s\n", buf);
+            
+            if (options->opt_P) {
+                mode_t m = files[i]->st.st_mode;
+                if (S_ISDIR(m)) printf("\x1b[1;34m");
+                else if (m & (S_IXUSR | S_IXGRP | S_IXOTH)) printf("\x1b[1;32m");
+#ifdef S_ISLNK
+                else if (S_ISLNK(m)) printf("\x1b[1;36m");
+#endif
+                else if (is_archive_file(files[i]->name)) printf("\x1b[1;31m");
+                else if (files[i]->name[0] == '.') printf("\x1b[1;30m");
+            }
+            
+            printf("%s", buf);
+            
+            if (options->opt_P) printf("\x1b[0m");
+            printf("\n");
         }
         return;
     }
