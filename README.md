@@ -34,6 +34,9 @@ The program successfully implements the following options as specified in the ma
 - **-t**: Sort by time modified
 - **-u**: Use time of last access for sorting or printing
 - **-w**: Force raw printing of non-printable characters
+- **-G (New)**: Enable colorized output based on file types (directories in blue, executables in green, symlinks in cyan, etc.).
+- **-T (New)**: Display the directory hierarchy in a tree-like format, similar to the standard `tree` command.
+- **--octal (New)**: Display file permissions in octal format (e.g., `[0755]`) alongside the string format in long listings.
 
 ## Project Structure
 
@@ -151,6 +154,18 @@ Run the program with any combination of supported flags. For example:
 ./ls -l -a
 ./ls -R -h
 ./ls -l -S -r /path/to/directory
+```
+
+**Testing the Bonus Features:**
+```bash
+# Test color output (shows files with beautiful ANSI colors)
+./ls -G -l
+
+# Test tree view (draws a tree hierarchy of directories)
+./ls -T
+
+# Test octal permissions (shows [0755] before the permission string)
+./ls -l --octal
 ```
 
 **After running the command successfully:**

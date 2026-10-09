@@ -28,6 +28,9 @@ typedef struct {
     bool opt_t;
     bool opt_u;
     bool opt_w;
+    bool opt_G;
+    bool opt_T;
+    bool opt_octal;
 } LsOptions;
 
 /* Structure to store file information */
@@ -40,6 +43,7 @@ typedef struct {
 /* ls_core.c */
 void process_path(const char *path, const LsOptions *options);
 void list_directory(const char *dir_path, const LsOptions *options);
+void print_tree_directory(const char *dir_path, const char *prefix, const LsOptions *options);
 
 /* utils.c */
 void print_file_info(const FileInfo *file, const LsOptions *options);

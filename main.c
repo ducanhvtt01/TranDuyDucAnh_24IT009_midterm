@@ -22,7 +22,19 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
         options->opt_A = true;
     }
 
-    while ((opt = getopt(argc, argv, "1AacdFfhiklnqRrSstuw")) != -1) {
+    /* Manually parse --octal to avoid needing getopt_long */
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--octal") == 0) {
+            options->opt_octal = true;
+            for (int j = i; j < argc - 1; j++) {
+                argv[j] = argv[j+1];
+            }
+            argc--;
+            i--;
+        }
+    }
+
+    while ((opt = getopt(argc, argv, "1AacdFfhiklnqRrSstuwGT")) != -1) {
         switch (opt) {
             case '1':
                 options->opt_1 = true;
@@ -48,8 +60,10 @@ void parse_options(int argc, char *argv[], LsOptions *options) {
             case 't': options->opt_t = true; break;
             case 'u': options->opt_u = true; options->opt_c = false; break;
             case 'w': options->opt_w = true; options->opt_q = false; break;
+            case 'G': options->opt_G = true; break;
+            case 'T': options->opt_T = true; break;
             default:
-                fprintf(stderr, "Usage: %s [-1AacdFfhiklnqRrSstuw] [file ...]\n", argv[0]);
+                fprintf(stderr, "Usage: %s [-1AacdFfhiklnqRrSstuwGT] [file ...]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -111,7 +125,11 @@ int main(int argc, char *argv[]) {
             if (num_operands > 1) {
                 printf("%s:\n", dirs[i]->path);
             }
-            list_directory(dirs[i]->path, &options);
+            if (options.opt_T) {
+                print_tree_directory(dirs[i]->path, "", &options);
+            } else {
+                list_directory(dirs[i]->path, &options);
+            }
             
             if (i < dir_count - 1) {
                 printf("\n");

@@ -14,7 +14,11 @@ void process_path(const char *path, const LsOptions *options) {
     }
     
     if (S_ISDIR(st.st_mode) && !options->opt_d) {
-        list_directory(path, options);
+        if (options->opt_T) {
+            print_tree_directory(path, "", options);
+        } else {
+            list_directory(path, options);
+        }
     } else {
         FileInfo *fi = malloc(sizeof(FileInfo));
         fi->name = strdup(path);
@@ -113,6 +117,75 @@ void list_directory(const char *dir_path, const LsOptions *options) {
                 printf("\n%s:\n", files[i]->path);
                 list_directory(files[i]->path, options);
             }
+        }
+    }
+    
+    for (int i = 0; i < count; i++) {
+        free(files[i]->name);
+        free(files[i]->path);
+        free(files[i]);
+    }
+    free(files);
+}
+
+void print_tree_directory(const char *dir_path, const char *prefix, const LsOptions *options) {
+    DIR *dir = opendir(dir_path);
+    if (!dir) {
+        perror(dir_path);
+        exit_status = 1;
+        return;
+    }
+    
+    struct dirent *entry;
+    FileInfo **files = NULL;
+    int count = 0;
+    int capacity = 10;
+    files = malloc(capacity * sizeof(FileInfo*));
+    
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_name[0] == '.') {
+            if (!options->opt_a && !options->opt_A) continue;
+            if (options->opt_A && !options->opt_a) {
+                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+            }
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+        }
+        
+        if (count >= capacity) {
+            capacity *= 2;
+            files = realloc(files, capacity * sizeof(FileInfo*));
+        }
+        
+        FileInfo *fi = malloc(sizeof(FileInfo));
+        fi->name = strdup(entry->d_name);
+        fi->path = make_full_path(dir_path, entry->d_name);
+        
+        if (lstat(fi->path, &fi->st) == -1) {
+            perror(fi->path);
+            exit_status = 1;
+            free(fi->name);
+            free(fi->path);
+            free(fi);
+            continue;
+        }
+        
+        files[count++] = fi;
+    }
+    closedir(dir);
+    
+    sort_files(files, count, options);
+    
+    for (int i = 0; i < count; i++) {
+        int is_last = (i == count - 1);
+        printf("%s%s", prefix, is_last ? "└── " : "├── ");
+        
+        print_file_name(files[i], options);
+        printf("\n");
+        
+        if (S_ISDIR(files[i]->st.st_mode)) {
+            char new_prefix[2048];
+            snprintf(new_prefix, sizeof(new_prefix), "%s%s", prefix, is_last ? "    " : "│   ");
+            print_tree_directory(files[i]->path, new_prefix, options);
         }
     }
     
