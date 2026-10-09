@@ -152,21 +152,7 @@ void print_file_name(const FileInfo *file, const LsOptions *options) {
         }
     }
     
-    const char *color = "";
-    const char *reset = "";
-    if (options->opt_G) {
-        mode_t m = file->st.st_mode;
-        reset = "\033[0m";
-        if (S_ISDIR(m)) color = "\033[1;34m";
-        else if (S_ISLNK(m)) color = "\033[1;36m";
-        else if (S_ISSOCK(m)) color = "\033[1;35m";
-        else if (S_ISFIFO(m)) color = "\033[1;33m";
-        else if (S_ISCHR(m) || S_ISBLK(m)) color = "\033[1;33m";
-        else if (m & (S_IXUSR | S_IXGRP | S_IXOTH)) color = "\033[1;32m";
-        else reset = "";
-    }
-    
-    printf("%s%s%s", color, name, reset);
+    printf("%s", name);
     
     if (options->opt_F) {
         mode_t m = file->st.st_mode;
@@ -204,9 +190,6 @@ void print_file_info(const FileInfo *file, const LsOptions *options) {
     }
     
     if (options->opt_l) {
-        if (options->opt_octal) {
-            printf("[%04o] ", (unsigned)(file->st.st_mode & 07777));
-        }
         char mode_str[11];
         format_mode(file->st.st_mode, mode_str);
         printf("%s  %u ", mode_str, (unsigned)file->st.st_nlink);
@@ -278,7 +261,7 @@ static int get_terminal_width(void) {
     return term_width;
 }
 
-static void format_entry_short(const FileInfo *file, const LsOptions *options, char *buf, size_t size, int *visible_len) {
+static void format_entry_short(const FileInfo *file, const LsOptions *options, char *buf, size_t size) {
     char name_buf[1024];
     strncpy(name_buf, file->name, sizeof(name_buf) - 1);
     name_buf[sizeof(name_buf) - 1] = '\0';
@@ -329,25 +312,8 @@ static void format_entry_short(const FileInfo *file, const LsOptions *options, c
                                "%4lld ", (long long)(file->st.st_blocks * 512 + bs - 1) / bs);
         }
     }
-    int vis_len = offset + strlen(name_buf) + strlen(suffix);
-    if (visible_len) *visible_len = vis_len;
-    
-    const char *color = "";
-    const char *reset = "";
-    if (options->opt_G) {
-        mode_t m = file->st.st_mode;
-        reset = "\033[0m";
-        if (S_ISDIR(m)) color = "\033[1;34m";
-        else if (S_ISLNK(m)) color = "\033[1;36m";
-        else if (S_ISSOCK(m)) color = "\033[1;35m";
-        else if (S_ISFIFO(m)) color = "\033[1;33m";
-        else if (S_ISCHR(m) || S_ISBLK(m)) color = "\033[1;33m";
-        else if (m & (S_IXUSR | S_IXGRP | S_IXOTH)) color = "\033[1;32m";
-        else reset = "";
-    }
-    
     snprintf(buf + offset, size > (size_t)offset ? size - offset : 0, 
-             "%s%s%s%s", color, name_buf, reset, suffix);
+             "%s%s", name_buf, suffix);
 }
 
 static void print_files_columnar(FileInfo **files, int count, const LsOptions *options) {
@@ -366,10 +332,9 @@ static void print_files_columnar(FileInfo **files, int count, const LsOptions *o
 
     for (int i = 0; i < count; i++) {
         char buf[2048];
-        int vis_len = 0;
-        format_entry_short(files[i], options, buf, sizeof(buf), &vis_len);
+        format_entry_short(files[i], options, buf, sizeof(buf));
         entries[i] = strdup(buf);
-        lens[i] = vis_len;
+        lens[i] = (int)strlen(buf);
     }
 
     int term_width = get_terminal_width();
@@ -429,12 +394,8 @@ static void print_files_columnar(FileInfo **files, int count, const LsOptions *o
                 }
             }
 
-            int actual_len = strlen(entries[idx]);
-            int invisible_len = actual_len - lens[idx];
-            int pad_width = best_col_widths[c] + invisible_len;
-
             if (has_next) {
-                printf("%-*s  ", pad_width, entries[idx]);
+                printf("%-*s  ", best_col_widths[c], entries[idx]);
             } else {
                 printf("%s", entries[idx]);
             }
@@ -463,7 +424,7 @@ void print_files(FileInfo **files, int count, const LsOptions *options) {
     if (options->opt_1 || !isatty(STDOUT_FILENO)) {
         for (int i = 0; i < count; i++) {
             char buf[2048];
-            format_entry_short(files[i], options, buf, sizeof(buf), NULL);
+            format_entry_short(files[i], options, buf, sizeof(buf));
             printf("%s\n", buf);
         }
         return;
