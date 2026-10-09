@@ -14,7 +14,11 @@ void process_path(const char *path, const LsOptions *options) {
     }
     
     if (S_ISDIR(st.st_mode) && !options->opt_d) {
-        list_directory(path, options);
+        if (options->opt_V) {
+            print_tree_directory(path, "", options);
+        } else {
+            list_directory(path, options);
+        }
     } else {
         FileInfo *fi = malloc(sizeof(FileInfo));
         fi->name = strdup(path);
